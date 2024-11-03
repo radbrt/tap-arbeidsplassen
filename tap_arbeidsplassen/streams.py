@@ -9,13 +9,13 @@ from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from tap_arbeidsplassen.client import arbeidsplassenStream
 
-class UsersStream(arbeidsplassenStream):
+class AdsStream(arbeidsplassenStream):
     """Define custom stream."""
 
     name = "ads"
     path = "/ads"
     primary_keys: t.ClassVar[list[str]] = ["uuid"]
-    replication_key = None
+    replication_key = "updated"
     # Optionally, you may also use `schema_filepath` in place of `schema`:
     # schema_filepath = SCHEMAS_DIR / "users.json"  # noqa: ERA001
     schema = th.PropertiesList(
@@ -41,16 +41,3 @@ class UsersStream(arbeidsplassenStream):
         th.Property("zip", th.StringType),
     ).to_dict()
 
-
-class GroupsStream(arbeidsplassenStream):
-    """Define custom stream."""
-
-    name = "groups"
-    path = "/groups"
-    primary_keys: t.ClassVar[list[str]] = ["id"]
-    replication_key = "modified"
-    schema = th.PropertiesList(
-        th.Property("name", th.StringType),
-        th.Property("id", th.StringType),
-        th.Property("modified", th.DateTimeType),
-    ).to_dict()
