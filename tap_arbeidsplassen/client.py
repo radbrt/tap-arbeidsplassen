@@ -82,6 +82,7 @@ class arbeidsplassenStream(RESTStream):
 
         return params
 
+
     def get_url_params(
         self,
         context: Context | None,  # noqa: ARG002
@@ -97,12 +98,14 @@ class arbeidsplassenStream(RESTStream):
             A dictionary of URL query parameters.
         """
         params: dict = {}
-        if next_page_token:
-            params["page"] = next_page_token
-        if self.replication_key:
-            params["sort"] = "asc"
-            params["order_by"] = self.replication_key
+        # params["updated"] = self.config.get("start_date", "2021-01-01")
+        # if next_page_token:
+        #     params["page"] = next_page_token
+        # if self.replication_key:
+        #     params["sort"] = "asc"
+        #     params["order_by"] = self.replication_key
         return params
+
 
     def prepare_request_payload(
         self,
@@ -121,6 +124,10 @@ class arbeidsplassenStream(RESTStream):
             A dictionary with the JSON body for a POST requests.
         """
         # TODO: Delete this method if no payload is required. (Most REST APIs.)
+        starting_date = self.get_starting_replication_key_value(
+            context
+        ) or self.config.get("start_date")
+
         return None
 
     def parse_response(self, response: requests.Response) -> t.Iterable[dict]:

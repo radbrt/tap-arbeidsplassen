@@ -21,9 +21,15 @@ class Taparbeidsplassen(Tap):
             th.StringType,
             required=True,
             secret=True,  # Flag config as protected.
-            title="Auth Token",
             description="The token to authenticate against the API service",
-        )
+        ),
+        th.Property(
+            "start_date",
+            th.StringType,
+            required=False,
+            description="The start date to query from",
+            default="2021-01-01",
+        ),
     ).to_dict()
 
     def discover_streams(self) -> list[streams.arbeidsplassenStream]:
@@ -33,8 +39,7 @@ class Taparbeidsplassen(Tap):
             A list of discovered streams.
         """
         return [
-            streams.GroupsStream(self),
-            streams.UsersStream(self),
+            streams.AdsStream(self)
         ]
 
 
