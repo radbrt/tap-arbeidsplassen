@@ -28,7 +28,7 @@ class Taparbeidsplassen(Tap):
             th.StringType,
             required=False,
             description="The start date to query from",
-            default="2021-01-01",
+            default="2024-01-01",
         ),
     ).to_dict()
 

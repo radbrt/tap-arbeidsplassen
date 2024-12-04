@@ -21,10 +21,11 @@ plugins:
     - name: auth_token
       label: Auth Token
       description: API Bearer token
+      password: true
 
     # TODO: Declare default configuration values here:
     config:
-      start_date: '2010-01-01T00:00:00Z'
+      start_date: '2024-01-01T00:00:00'
 
   loaders:
   - name: target-jsonl

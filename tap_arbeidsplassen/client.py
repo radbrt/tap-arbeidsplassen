@@ -13,10 +13,10 @@ from singer_sdk.helpers._typing import TypeConformanceLevel
 
 from singer_sdk.pagination import BaseOffsetPaginator
 
-class MyPaginator(BaseOffsetPaginator):
+class MyPaginator(BasePageNumberPaginator):
     def has_more(self, response):
         data = response.json()
-        return data.get("has_more", False)
+        return data.get("last", False)
 
 
 if t.TYPE_CHECKING:
@@ -32,15 +32,14 @@ class arbeidsplassenStream(RESTStream):
     """arbeidsplassen stream class."""
 
     # Update this value if necessary or override `parse_response`.
-    records_jsonpath = "$[content]"
-    rest_method = "POST"
-    PAGE_SIZE = 100
+    records_jsonpath = "$.content[*]"
+    rest_method = "GET"
+    PAGE_SIZE = 1
     TYPE_CONFORMANCE_LEVEL = TypeConformanceLevel.ROOT_ONLY
 
     @property
     def url_base(self) -> str:
         """Return the API URL root, configurable via tap settings."""
-        # TODO: hardcode a value here, or retrieve it from self.config
         return "https://arbeidsplassen.nav.no/public-feed/api/v1/"
 
     @property
@@ -71,40 +70,46 @@ class arbeidsplassenStream(RESTStream):
 
 
     def get_new_paginator(self):
-        return BaseOffsetPaginator(start_value=0, page_size=250)
+        return BaseOffsetPaginator(start_value=0, page_size=self.PAGE_SIZE)
 
     def get_url_params(self, context, next_page_token):
-        params = {}
+
+        start_date = self.get_starting_replication_key_value(context) or self.config.get("start_date", "2024-12-03")
+        params = {
+            'size': 50,
+            'updated': f'[{start_date}, 2030-12-31T00:00:00]' # self.config.get("start_date", "2021-01-01")
+            }
 
         # Next page token is an offset
         if next_page_token:
-            params["pageNumber"] = next_page_token
+            params["page"] = next_page_token
 
+        self.logger.info(f"params: {params}")
         return params
 
 
-    def get_url_params(
-        self,
-        context: Context | None,  # noqa: ARG002
-        next_page_token: t.Any | None,  # noqa: ANN401
-    ) -> dict[str, t.Any]:
-        """Return a dictionary of values to be used in URL parameterization.
+    # def get_url_params(
+    #     self,
+    #     context: Context | None,  # noqa: ARG002
+    #     next_page_token: t.Any | None,  # noqa: ANN401
+    # ) -> dict[str, t.Any]:
+    #     """Return a dictionary of values to be used in URL parameterization.
 
-        Args:
-            context: The stream context.
-            next_page_token: The next page index or value.
+    #     Args:
+    #         context: The stream context.
+    #         next_page_token: The next page index or value.
 
-        Returns:
-            A dictionary of URL query parameters.
-        """
-        params: dict = {}
-        # params["updated"] = self.config.get("start_date", "2021-01-01")
-        # if next_page_token:
-        #     params["page"] = next_page_token
-        # if self.replication_key:
-        #     params["sort"] = "asc"
-        #     params["order_by"] = self.replication_key
-        return params
+    #     Returns:
+    #         A dictionary of URL query parameters.
+    #     """
+    #     params: dict = {}
+    #     # params["updated"] = self.config.get("start_date", "2021-01-01")
+    #     # if next_page_token:
+    #     #     params["page"] = next_page_token
+    #     # if self.replication_key:
+    #     #     params["sort"] = "asc"
+    #     #     params["order_by"] = self.replication_key
+    #     return params
 
 
     def prepare_request_payload(
