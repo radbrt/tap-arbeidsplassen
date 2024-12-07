@@ -44,7 +44,8 @@ class arbeidsplassenStream(RESTStream):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.nlp = spacy.load("nb_small/")
+        model_dir = resources.files('tap_arbeidsplassen') / 'nb_small'
+        self.nlp = spacy.load('nb_small/')
 
     @property
     def url_base(self) -> str:
