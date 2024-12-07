@@ -10,6 +10,10 @@ from singer_sdk.helpers.jsonpath import extract_jsonpath
 from singer_sdk.pagination import BaseAPIPaginator, BasePageNumberPaginator  # noqa: TCH002
 from singer_sdk.streams import RESTStream
 from singer_sdk.helpers._typing import TypeConformanceLevel
+import re
+
+import spacy
+
 
 from singer_sdk.pagination import BaseOffsetPaginator
 
@@ -36,6 +40,11 @@ class arbeidsplassenStream(RESTStream):
     rest_method = "GET"
     PAGE_SIZE = 1
     TYPE_CONFORMANCE_LEVEL = TypeConformanceLevel.ROOT_ONLY
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.nlp = spacy.load("nb_small/")
 
     @property
     def url_base(self) -> str:
@@ -161,5 +170,24 @@ class arbeidsplassenStream(RESTStream):
         Returns:
             The updated record dictionary, or ``None`` to skip the record.
         """
-        # TODO: Delete this method if not needed.
+        txt = row["description"]
+        new_txt = ""
+        doc = self.nlp(txt)
+        # Replace PER entities with N.N.
+        # Reverse order to avoid changing indices
+        for ent in reversed(doc.ents):
+            if ent.label_ == "PER":
+                new_txt = txt[:ent.start_char] + "N.N." + txt[ent.end_char:]
+
+        # Replace email addresses with N.N.
+        new_txt = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', 'N.N.', new_txt)
+
+        # replace strings of numbers longer than 3 with N.N.
+        new_txt = re.sub(r'\d{4,}', 'X', new_txt)
+
+        if not new_txt:
+            row["description"] = txt
+        else:
+            row["description"] = new_txt
+
         return row

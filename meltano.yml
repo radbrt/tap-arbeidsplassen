@@ -8,7 +8,7 @@ plugins:
   extractors:
   - name: "tap-arbeidsplassen"
     namespace: "tap_arbeidsplassen"
-    pip_url: -e .
+    pip_url: -e ".[apple]"
     capabilities:
     - state
     - catalog
@@ -25,7 +25,7 @@ plugins:
 
     # TODO: Declare default configuration values here:
     config:
-      start_date: '2024-01-01T00:00:00'
+      start_date: '2024-12-01T00:00:00'
 
   loaders:
   - name: target-jsonl
