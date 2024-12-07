@@ -20,7 +20,7 @@ from singer_sdk.pagination import BaseOffsetPaginator
 class MyPaginator(BasePageNumberPaginator):
     def has_more(self, response):
         data = response.json()
-        return data.get("last", False)
+        return not data.get("last", True)
 
 
 if t.TYPE_CHECKING:
