@@ -18,9 +18,13 @@ import spacy
 from singer_sdk.pagination import BaseOffsetPaginator
 
 class MyPaginator(BasePageNumberPaginator):
-    def has_more(self, response):
+
+    def get_next(self, response):
         data = response.json()
-        return not data.get("last", True)
+        if data.get("last", True):
+            return None
+        return data.get("pageNumber", 1) + 1
+
 
 
 if t.TYPE_CHECKING:
@@ -40,7 +44,7 @@ class arbeidsplassenStream(RESTStream):
     rest_method = "GET"
     PAGE_SIZE = 1
     TYPE_CONFORMANCE_LEVEL = TypeConformanceLevel.ROOT_ONLY
-
+    is_sorted = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -80,14 +84,14 @@ class arbeidsplassenStream(RESTStream):
 
 
     def get_new_paginator(self):
-        return BaseOffsetPaginator(start_value=0, page_size=self.PAGE_SIZE)
+        return MyPaginator(start_value=0)
 
     def get_url_params(self, context, next_page_token):
 
         start_date = self.get_starting_replication_key_value(context) or self.config.get("start_date", "2024-12-03")
         params = {
             'size': 50,
-            'updated': f'[{start_date}, 2030-12-31T00:00:00]' # self.config.get("start_date", "2021-01-01")
+            'updated': f'[{start_date},2030-12-31T00:00:00]' # self.config.get("start_date", "2021-01-01")
             }
 
         # Next page token is an offset
@@ -139,9 +143,7 @@ class arbeidsplassenStream(RESTStream):
             A dictionary with the JSON body for a POST requests.
         """
         # TODO: Delete this method if no payload is required. (Most REST APIs.)
-        starting_date = self.get_starting_replication_key_value(
-            context
-        ) or self.config.get("start_date")
+
 
         return None
 
