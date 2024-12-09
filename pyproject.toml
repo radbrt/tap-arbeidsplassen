@@ -30,7 +30,7 @@ spacy = ">=3.5.0"
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8"
 singer-sdk = { version="~=0.41.0", extras = ["testing"] }
-responses = "~=0.24.0"
+responses = "~=0.25.3"
 
 [tool.poetry.extras]
 s3 = ["fs-s3fs"]
